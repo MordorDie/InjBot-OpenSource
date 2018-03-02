@@ -66,21 +66,19 @@ bot.on(/^!(?:кубик|dice)\s([1-6])/i, "кубик <1-6> -- игра в ку�
 // Кости
 bot.on(/^!(?:кости)\s([0-9]+)/i, "кости <0-9> -- игра в кости", function (message, {utils, users}) {
     let
-        dice = { 
-            bot:    utils.random(6), 
-            user:   utils.random(6)
-        },
-        amount = Number(message.args[1]);
+        bot     = utils.random(6), 
+        user    = utils.random(6),
+        amount  = Number(message.args[1]);
 
     users[message.user].balance = 
-        dice.bot < dice.user ?
-            users[message.user].balance + amount : dice.bot === dice.user ?
+        bot < user ?
+            users[message.user].balance + amount : bot === user ?
                 users[message.user].balance : users[message.user].balance - amount;
     
     return message.plain (
-        `мне выпало - ${dice.bot}&#8419;\n Тебе выпало - ${dice.user}&#8419;\n` + 
-        (dice.bot < dice.user ?
-            `Ты выиграл - ${amount}$` : dice.bot === dice.user ?
+        `мне выпало - ${bot}&#8419;\n Тебе выпало - ${user}&#8419;\n` + 
+        (bot < user ?
+            `Ты выиграл - ${amount}$` : bot === user ?
                 `Ничья :)` : `Ты проиграл - ${amount}$`)
     )
 })
