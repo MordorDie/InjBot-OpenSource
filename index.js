@@ -1,5 +1,6 @@
 ﻿// Подключение "ядра"
 const Core = require("./bot/index");
+const fs = require("fs");
 // Создание нового экземпляра
 const bot = new Core({
     access_token: "",   // Токен
@@ -7,6 +8,10 @@ const bot = new Core({
 })
 // Подключение лонгпулла
 bot.start();
+// Модульная система
+fs.readdirSync('./plugins').filter(e => e.endsWith('.js')).map(e => {
+    bot.commands.push(e);
+})
 // Пример использования message.plain
 bot.on(/^!test/i, "test -- команда для првоерки бота", function (message) {
     return message.plain(`я работаю`);
@@ -40,6 +45,43 @@ bot.on(/^!шар\s(.*)/i, "шар <text> -- ответит <<да>> или <<н�
 bot.on(/^!help/i, "help -- вывод всех доступных команд", function (message, {commands}) {
     return message.plain(`список доступных команд:\n` +
         commands.filter(cmd => !cmd.admin).map(cmd => '!' + cmd.description).join("\n")
+    )
+})
+// Кубик
+bot.on(/^!(?:кубик|dice)\s([1-6])/i, "кубик <1-6> -- игра в кубик", function (message, {utils, users}) {
+    let 
+        randNumber  = utils.random(6),
+        amount      = utils.randomPick([100,200,300,400,500]);
+
+    users[message.user].balance = 
+        randNumber == message.args[1] ? 
+            users[message.user].balance + amount : users[message.user].balance;
+    
+    return message.plain ( 
+        randNumber == message.args[1] ? 
+            `ты загадал - ${message.args[1]}&#8419;\nА мне выпало - ${randNumber}&#8419;\nТы выиграл - ${amount}$` : 
+            `ты загадал - ${message.args[1]}&#8419;\nА мне выпало - ${randNumber}&#8419;\nТы не угадал`
+    )
+})
+// Кости
+bot.on(/^!(?:кости)\s([0-9]+)/i, "кости <0-9> -- игра в кости", function (message, {utils, users}) {
+    let
+        dice = { 
+            bot:    utils.random(6), 
+            user:   utils.random(6)
+        },
+        amount = Number(message.args[1]);
+
+    users[message.user].balance = 
+        dice.bot < dice.user ?
+            users[message.user].balance + amount : dice.bot === dice.user ?
+                users[message.user].balance : users[message.user].balance - amount;
+    
+    return message.plain (
+        `мне выпало - ${dice.bot}&#8419;\n Тебе выпало - ${dice.user}&#8419;\n` + 
+        (dice.bot < dice.user ?
+            `Ты выиграл - ${amount}$` : dice.bot === dice.user ?
+                `Ничья :)` : `Ты проиграл - ${amount}$`)
     )
 })
 
