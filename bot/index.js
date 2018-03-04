@@ -28,7 +28,7 @@ function InjBot (config) {
             if(!message.text || ~message.flags.indexOf("outbox")) return;
             // Добавление нового юзера в "базу", если его нет
             if(!_this.users[message.user]) {
-                await _this.vk.api.users.get({
+                _this.vk.api.users.get({
                     user_ids: message.user
                 }).then(function (res) {
                     _this.users[message.user] = {
@@ -54,9 +54,9 @@ function InjBot (config) {
             }
             // Plain сообщение, т.е "Имя + текст"
             message.plain = async function (text, params = {}) {
-                const res = _this.users[message.user].nick ? await _this.vk.api.users.get({ 
+                const res = await _this.vk.api.users.get({ 
                     user_id: message.user
-                }) : _this.users[message.user].nick
+                })
 
                 return message.send(res[0].first_name + ', ' + text, params);
             }
