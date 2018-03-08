@@ -1,6 +1,9 @@
 ﻿// Подключение "ядра"
 const Core = require("./bot/index");
+// Подключение fs              
 const fs = require("fs");
+// Подключение MathJs           // http://mathjs.org/
+const math = require("mathjs");
 // Создание нового экземпляра
 const bot = new Core({
     access_token: "",   // Токен
@@ -8,10 +11,6 @@ const bot = new Core({
 })
 // Подключение лонгпулла
 bot.start();
-// Модульная система
-fs.readdirSync('./plugins').filter(e => e.endsWith('.js')).map(e => {
-    bot.commands.push(e);
-})
 // Пример использования message.plain
 bot.on(/^!test/i, "test -- команда для првоерки бота", function (message) {
     return message.plain(`я работаю`);
@@ -82,22 +81,14 @@ bot.on(/^!(?:кости)\s([0-9]+)/i, "кости <0-9> -- игра в кост�
                 `Ничья :)` : `Ты проиграл - ${amount}$`)
     )
 })
-
-/** Примеры как сделать модульного бота
-
-    # Примитивный, плохой пример:
-        const fs = require("fs");
-
-        fs.readdirSync('./commands').filter(e => e.endsWith('.js')).map(e => {
-            cmd = require(e);
-            bot.on(cmd.pattern, cmd.description, cmd.func, cmd.admin)
-        })
-
-    # Вариант получше:
-        const fs = require("fs");
-
-        fs.readdirSync('./commands').filter(e => e.endsWith('.js')).map(e => {
-            bot.commands.push(e);
-        })
-
-**/
+// Калькулятор
+bot.on(/^!(?:calc|посчитай)\s([^"]+)/i, "calc <numbers> -- калькулятор", (message) => 
+    message.reply( message.args[1] + " = " + math.eval(message.args[1]).toString() ));
+// Пример вызова метода
+bot.on(/^!(?:set)\s(.*)/i, "!set <text> -- установка статуса", function (message, core) {
+    core.api("status.set", {
+        text: message.args[1]
+    }).then(() => {
+        return message.plain(`статус ${message.args[1]} успешно установлен`);
+    })
+}, true)

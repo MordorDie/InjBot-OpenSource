@@ -14,6 +14,9 @@ function InjBot (config) {
     // Примитивная база
     this.users = {};
 
+    // shit
+    this.api = (method, params) => _this.vk.api.call(method, params);
+
     _this.vk.api.users.get()
         .then(function (res) {
             _this.sets.id = res[0].id;
