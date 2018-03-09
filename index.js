@@ -5,16 +5,18 @@ const fs = require("fs");
 // Подключение MathJs           // http://mathjs.org/
 const math = require("mathjs");
 // Создание нового экземпляра
-const bot = new Core({
-    access_token: "",   // Токен
-    admins: [1]         // Айди администраторов
-})
+const bot = new Core(require("./config.json"));
 // Подключение лонгпулла
 bot.start();
+
+// Автосохранение базы
+bot.db.save();
+
 // Пример использования message.plain
 bot.on(/^!test/i, "test -- команда для првоерки бота", function (message) {
     return message.plain(`я работаю`);
 })
+
 // Пример использования message.append
 bot.on(/^!(?:online|онлайн)/i, "online -- покажет пользователей онлайн", function (message, {vk}) {
     vk.api.messages.getChatUsers({
@@ -31,21 +33,30 @@ bot.on(/^!(?:online|онлайн)/i, "online -- покажет пользова�
 })
 // Пример использования message.args + создание админской команды
 bot.on(/^!eval\s(.*)/i, "eval -- исполняет JS код", function (message, core) {
-    let result = eval(message.args[1]);
+    let result;
+    try {
+        result = eval(message.args[1]);
+    } catch (err) {
+        return message.reply(err.toString());
+    }
+
     return message.reply (
         typeof result === "object" ? JSON.stringify(result, null, "&#4448;") : result.toString()
     )
 }, true)
+
 // Пример с использованием "utils"
 bot.on(/^!шар\s(.*)/i, "шар <text> -- ответит <<да>> или <<нет>> на ваш вопрос", function (message, {utils}) {
-    return message.plain ( utils.randomPick( ['да', 'нет'] ) )
+    return message.plain( utils.randomPick( ['да', 'нет'] ) )
 })
+
 // Пример как выводить все команды, без учета админских
 bot.on(/^!help/i, "help -- вывод всех доступных команд", function (message, {commands}) {
     return message.plain(`список доступных команд:\n` +
         commands.filter(cmd => !cmd.admin).map(cmd => '!' + cmd.description).join("\n")
     )
 })
+
 // Кубик
 bot.on(/^!(?:кубик|dice)\s([1-6])/i, "кубик <1-6> -- игра в кубик", function (message, {utils, users}) {
     let 
@@ -62,6 +73,7 @@ bot.on(/^!(?:кубик|dice)\s([1-6])/i, "кубик <1-6> -- игра в ку�
             `ты загадал - ${message.args[1]}&#8419;\nА мне выпало - ${randNumber}&#8419;\nТы не угадал`
     )
 })
+
 // Кости
 bot.on(/^!(?:кости)\s([0-9]+)/i, "кости <0-9> -- игра в кости", function (message, {utils, users}) {
     let
@@ -81,12 +93,14 @@ bot.on(/^!(?:кости)\s([0-9]+)/i, "кости <0-9> -- игра в кост�
                 `Ничья :)` : `Ты проиграл - ${amount}$`)
     )
 })
+
 // Калькулятор
 bot.on(/^!(?:calc|посчитай)\s([^"]+)/i, "calc <numbers> -- калькулятор", (message) => 
     message.reply( message.args[1] + " = " + math.eval(message.args[1]).toString() ));
+
 // Пример вызова метода
-bot.on(/^!(?:set)\s(.*)/i, "!set <text> -- установка статуса", function (message, core) {
-    core.api("status.set", {
+bot.on(/^!(?:set)\s(.*)/i, "!set <text> -- установка статуса", function (message, {vk}) {
+    vk.api.status.set({
         text: message.args[1]
     }).then(() => {
         return message.plain(`статус ${message.args[1]} успешно установлен`);

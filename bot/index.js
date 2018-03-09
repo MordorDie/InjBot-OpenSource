@@ -1,4 +1,5 @@
 const VK = require("vk-io");
+const fs = require("fs");
 
 function InjBot (config) {
     _this = this;
@@ -12,10 +13,7 @@ function InjBot (config) {
     this.utils = require("./utils");
     this.sets = config;
     // Примитивная база
-    this.users = {};
-
-    // shit
-    this.api = (method, params) => _this.vk.api.call(method, params);
+    this.users = require("../db/users.json");
 
     _this.vk.api.users.get()
         .then(function (res) {
@@ -109,6 +107,14 @@ function InjBot (config) {
             "func": f,                      // Функция команды
             "admin": a                      // Является ли команда администраторкой, по умолчанию false
         })
+    }
+
+    this.db = {
+        save: () => {
+            setInterval(() => {
+                fs.writeFileSync("./db/users.json", JSON.stringify(_this.users, null, "\t"));
+            }, 1000)
+        }
     }
 }
 
